@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id
+  email     String    @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime  @default(now())
+  capsules  Capsule[]
+}
+
+model Capsule {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  category    String
+  goal        String
+  imageUrl    String?
+  voiceUrl    String?
+  status      CapsuleStatus @default(PROCESSING)
+  openDate    DateTime
+  createdAt   DateTime      @default(now())
+  analysis    AIAnalysis?
+  reflections Reflection[]
+
+  @@index([userId])
+}
+
+enum CapsuleStatus {
+  PROCESSING
+  READY
+  OPENED
+}
+
+model AIAnalysis {
+  id           String  @id @default(cuid())
+  capsuleId    String  @unique
+  capsule      Capsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  summary      String
+  emotion      String
+  keywords     String[]
+  futureLetter String
+  advice       String
+  obstacles    String[]
+  audioUrl     String?
+}
+
+model Reflection {
+  id         String   @id @default(cuid())
+  capsuleId  String
+  capsule    Capsule  @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  reflection String
+  analysis   Json
+  createdAt  DateTime @default(now())
+
+  @@index([capsuleId])
+}
